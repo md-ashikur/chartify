@@ -3,6 +3,7 @@
 import { RadarChart as RechartsRadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Legend } from 'recharts';
 
 interface DataPoint {
+  id: number;
   date: string;
   revenue: number;
   users: number;

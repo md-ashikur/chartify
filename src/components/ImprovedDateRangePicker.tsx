@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { format, subDays, startOfMonth, endOfMonth, subMonths, addMonths, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isWithinInterval } from 'date-fns';
+import { format, subDays, startOfMonth, endOfMonth, subMonths, addMonths, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, isWithinInterval, getYear, setYear } from 'date-fns';
 
 interface DateRangePickerProps {
   startDate: Date;
@@ -15,6 +15,8 @@ export default function DateRangePicker({ startDate, endDate, onChange }: DateRa
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectingStart, setSelectingStart] = useState(true);
   const [tempStartDate, setTempStartDate] = useState<Date | null>(null);
+  const [tempEndDate, setTempEndDate] = useState<Date | null>(null);
+  const [showYearPicker, setShowYearPicker] = useState(false);
 
   const presets = [
     {
@@ -58,38 +60,50 @@ export default function DateRangePicker({ startDate, endDate, onChange }: DateRa
     const range = preset.value();
     onChange(range.start, range.end);
     setIsOpen(false);
+    resetCalendarSelection();
   };
 
   const handleDateClick = (date: Date) => {
     if (selectingStart) {
       setTempStartDate(date);
+      setTempEndDate(null);
       setSelectingStart(false);
     } else {
       if (tempStartDate && date >= tempStartDate) {
-        onChange(tempStartDate, date);
-        setIsOpen(false);
-        setSelectingStart(true);
-        setTempStartDate(null);
+        setTempEndDate(date);
       } else if (tempStartDate && date < tempStartDate) {
-        onChange(date, tempStartDate);
-        setIsOpen(false);
-        setSelectingStart(true);
-        setTempStartDate(null);
+        setTempEndDate(tempStartDate);
+        setTempStartDate(date);
       }
     }
   };
 
-  const isDateInRange = (date: Date) => {
-    if (tempStartDate && !selectingStart) {
-      const start = tempStartDate;
-      const end = date;
-      return isWithinInterval(date, { start: start < end ? start : end, end: start < end ? end : start });
+  const handleApplyDates = () => {
+    if (tempStartDate && tempEndDate) {
+      onChange(tempStartDate, tempEndDate);
+      setIsOpen(false);
+      resetCalendarSelection();
     }
-    return isWithinInterval(date, { start: startDate, end: endDate });
+  };
+
+  const isDateInRange = (date: Date) => {
+    if (tempStartDate && tempEndDate) {
+      return isWithinInterval(date, { start: tempStartDate, end: tempEndDate });
+    }
+    if (tempStartDate && !selectingStart) {
+      // Show potential range
+      const currentDate = new Date();
+      const start = tempStartDate < currentDate ? tempStartDate : currentDate;
+      const end = tempStartDate < currentDate ? currentDate : tempStartDate;
+      return isWithinInterval(date, { start, end });
+    }
+    return false;
   };
 
   const isDateSelected = (date: Date) => {
-    return isSameDay(date, startDate) || isSameDay(date, endDate) || (tempStartDate && isSameDay(date, tempStartDate));
+    return (tempStartDate && isSameDay(date, tempStartDate)) || 
+           (tempEndDate && isSameDay(date, tempEndDate)) ||
+           (!tempStartDate && !tempEndDate && (isSameDay(date, startDate) || isSameDay(date, endDate)));
   };
 
   const getDaysInMonth = () => {
@@ -101,6 +115,21 @@ export default function DateRangePicker({ startDate, endDate, onChange }: DateRa
   const resetCalendarSelection = () => {
     setSelectingStart(true);
     setTempStartDate(null);
+    setTempEndDate(null);
+  };
+
+  const handleYearSelect = (year: number) => {
+    setCurrentMonth(setYear(currentMonth, year));
+    setShowYearPicker(false);
+  };
+
+  const currentYear = getYear(currentMonth);
+  const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
+
+  const getInstructionText = () => {
+    if (!tempStartDate) return 'Select start date';
+    if (!tempEndDate) return 'Select end date';
+    return `${format(tempStartDate, 'MMM dd')} - ${format(tempEndDate, 'MMM dd')}`;
   };
 
   return (
@@ -134,7 +163,7 @@ export default function DateRangePicker({ startDate, endDate, onChange }: DateRa
               resetCalendarSelection();
             }}
           />
-          <div className="absolute right-0 mt-2 w-80 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-xl z-20">
+          <div className="absolute right-0 mt-2 w-96 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg shadow-xl z-20">
             {/* Tab Navigation */}
             <div className="flex border-b border-white/20">
               <button
@@ -161,7 +190,7 @@ export default function DateRangePicker({ startDate, endDate, onChange }: DateRa
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                Calendar
+                Custom Range
               </button>
             </div>
 
@@ -190,9 +219,16 @@ export default function DateRangePicker({ startDate, endDate, onChange }: DateRa
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
                     </button>
-                    <h3 className="text-white font-semibold">
-                      {format(currentMonth, 'MMMM yyyy')}
-                    </h3>
+                    
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowYearPicker(!showYearPicker)}
+                        className="text-white font-semibold hover:bg-white/10 px-2 py-1 rounded transition-colors"
+                      >
+                        {format(currentMonth, 'MMMM yyyy')}
+                      </button>
+                    </div>
+                    
                     <button
                       onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
                       className="p-1 text-slate-300 hover:text-white transition-colors"
@@ -202,6 +238,25 @@ export default function DateRangePicker({ startDate, endDate, onChange }: DateRa
                       </svg>
                     </button>
                   </div>
+
+                  {/* Year Picker */}
+                  {showYearPicker && (
+                    <div className="grid grid-cols-5 gap-2 mb-4 p-3 bg-white/5 rounded-lg">
+                      {years.map((year) => (
+                        <button
+                          key={year}
+                          onClick={() => handleYearSelect(year)}
+                          className={`px-2 py-1 text-xs rounded transition-colors ${
+                            year === currentYear
+                              ? 'bg-blue-500 text-white'
+                              : 'text-slate-300 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Weekday Headers */}
                   <div className="grid grid-cols-7 gap-1 mb-2">
@@ -213,7 +268,7 @@ export default function DateRangePicker({ startDate, endDate, onChange }: DateRa
                   </div>
 
                   {/* Calendar Days */}
-                  <div className="grid grid-cols-7 gap-1">
+                  <div className="grid grid-cols-7 gap-1 mb-4">
                     {getDaysInMonth().map((date) => {
                       const isCurrentMonth = isSameMonth(date, currentMonth);
                       const isSelected = isDateSelected(date);
@@ -240,9 +295,27 @@ export default function DateRangePicker({ startDate, endDate, onChange }: DateRa
                     })}
                   </div>
 
-                  {/* Calendar Instructions */}
-                  <div className="mt-4 text-xs text-slate-400 text-center">
-                    {selectingStart ? 'Select start date' : 'Select end date'}
+                  {/* Calendar Instructions & Actions */}
+                  <div className="border-t border-white/20 pt-4">
+                    <div className="text-xs text-slate-400 text-center mb-3">
+                      {getInstructionText()}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <button
+                        onClick={resetCalendarSelection}
+                        className="flex-1 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded transition-colors"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        onClick={handleApplyDates}
+                        disabled={!tempStartDate || !tempEndDate}
+                        className="flex-1 px-3 py-2 text-sm bg-blue-500 text-white hover:bg-blue-600 disabled:bg-slate-600 disabled:cursor-not-allowed rounded transition-colors"
+                      >
+                        Apply
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

@@ -1,0 +1,297 @@
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+export interface DataPoint {
+  id: number;
+  date: string;
+  revenue: number;
+  users: number;
+  orders: number;
+  category: string;
+}
+
+// Mock data that would normally come from JSON server
+const mockAnalyticsData: DataPoint[] = [
+  {
+    id: 1,
+    date: "2025-06-23",
+    revenue: 2450,
+    users: 156,
+    orders: 34,
+    category: "Electronics"
+  },
+  {
+    id: 2,
+    date: "2025-06-24",
+    revenue: 1890,
+    users: 123,
+    orders: 28,
+    category: "Clothing"
+  },
+  {
+    id: 3,
+    date: "2025-06-25",
+    revenue: 3200,
+    users: 189,
+    orders: 45,
+    category: "Electronics"
+  },
+  {
+    id: 4,
+    date: "2025-06-26",
+    revenue: 1650,
+    users: 98,
+    orders: 22,
+    category: "Books"
+  },
+  {
+    id: 5,
+    date: "2025-06-27",
+    revenue: 2890,
+    users: 167,
+    orders: 38,
+    category: "Home & Garden"
+  },
+  {
+    id: 6,
+    date: "2025-06-28",
+    revenue: 3400,
+    users: 210,
+    orders: 52,
+    category: "Sports"
+  },
+  {
+    id: 7,
+    date: "2025-06-29",
+    revenue: 3800,
+    users: 234,
+    orders: 58,
+    category: "Electronics"
+  },
+  {
+    id: 8,
+    date: "2025-06-30",
+    revenue: 2100,
+    users: 145,
+    orders: 31,
+    category: "Clothing"
+  },
+  {
+    id: 9,
+    date: "2025-07-01",
+    revenue: 2750,
+    users: 178,
+    orders: 42,
+    category: "Electronics"
+  },
+  {
+    id: 10,
+    date: "2025-07-02",
+    revenue: 1950,
+    users: 134,
+    orders: 29,
+    category: "Books"
+  },
+  {
+    id: 11,
+    date: "2025-07-03",
+    revenue: 3100,
+    users: 201,
+    orders: 47,
+    category: "Home & Garden"
+  },
+  {
+    id: 12,
+    date: "2025-07-04",
+    revenue: 4200,
+    users: 267,
+    orders: 63,
+    category: "Sports"
+  },
+  {
+    id: 13,
+    date: "2025-07-05",
+    revenue: 3650,
+    users: 223,
+    orders: 55,
+    category: "Electronics"
+  },
+  {
+    id: 14,
+    date: "2025-07-06",
+    revenue: 2300,
+    users: 156,
+    orders: 35,
+    category: "Clothing"
+  },
+  {
+    id: 15,
+    date: "2025-07-07",
+    revenue: 2850,
+    users: 187,
+    orders: 43,
+    category: "Electronics"
+  },
+  {
+    id: 16,
+    date: "2025-07-08",
+    revenue: 1750,
+    users: 112,
+    orders: 26,
+    category: "Books"
+  },
+  {
+    id: 17,
+    date: "2025-07-09",
+    revenue: 3300,
+    users: 212,
+    orders: 49,
+    category: "Home & Garden"
+  },
+  {
+    id: 18,
+    date: "2025-07-10",
+    revenue: 3950,
+    users: 245,
+    orders: 59,
+    category: "Sports"
+  },
+  {
+    id: 19,
+    date: "2025-07-11",
+    revenue: 2600,
+    users: 168,
+    orders: 39,
+    category: "Electronics"
+  },
+  {
+    id: 20,
+    date: "2025-07-12",
+    revenue: 2150,
+    users: 143,
+    orders: 32,
+    category: "Clothing"
+  },
+  {
+    id: 21,
+    date: "2025-07-13",
+    revenue: 3500,
+    users: 219,
+    orders: 51,
+    category: "Electronics"
+  },
+  {
+    id: 22,
+    date: "2025-07-14",
+    revenue: 1850,
+    users: 125,
+    orders: 28,
+    category: "Books"
+  },
+  {
+    id: 23,
+    date: "2025-07-15",
+    revenue: 4100,
+    users: 256,
+    orders: 61,
+    category: "Home & Garden"
+  },
+  {
+    id: 24,
+    date: "2025-07-16",
+    revenue: 3750,
+    users: 231,
+    orders: 56,
+    category: "Sports"
+  },
+  {
+    id: 25,
+    date: "2025-07-17",
+    revenue: 2900,
+    users: 185,
+    orders: 44,
+    category: "Electronics"
+  },
+  {
+    id: 26,
+    date: "2025-07-18",
+    revenue: 2350,
+    users: 152,
+    orders: 35,
+    category: "Clothing"
+  },
+  {
+    id: 27,
+    date: "2025-07-19",
+    revenue: 3200,
+    users: 203,
+    orders: 48,
+    category: "Electronics"
+  },
+  {
+    id: 28,
+    date: "2025-07-20",
+    revenue: 1950,
+    users: 128,
+    orders: 30,
+    category: "Books"
+  },
+  {
+    id: 29,
+    date: "2025-07-21",
+    revenue: 3850,
+    users: 241,
+    orders: 57,
+    category: "Home & Garden"
+  },
+  {
+    id: 30,
+    date: "2025-07-22",
+    revenue: 4300,
+    users: 271,
+    orders: 64,
+    category: "Sports"
+  },
+  {
+    id: 31,
+    date: "2025-07-23",
+    revenue: 3100,
+    users: 195,
+    orders: 46,
+    category: "Electronics"
+  }
+];
+
+// Create RTK Query API with mock data
+export const analyticsApi = createApi({
+  reducerPath: 'analyticsApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/api/', // Mock base URL
+  }),
+  endpoints: (builder) => ({
+    getAnalytics: builder.query<DataPoint[], void>({
+      queryFn: async () => {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return { data: mockAnalyticsData };
+      },
+    }),
+    getAnalyticsByDateRange: builder.query<DataPoint[], { startDate: string; endDate: string }>({
+      queryFn: async ({ startDate, endDate }) => {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        const filteredData = mockAnalyticsData.filter(item => {
+          const itemDate = new Date(item.date);
+          return itemDate >= start && itemDate <= end;
+        });
+        
+        return { data: filteredData };
+      },
+    }),
+  }),
+});
+
+export const { useGetAnalyticsQuery, useGetAnalyticsByDateRangeQuery } = analyticsApi;

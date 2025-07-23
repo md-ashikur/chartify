@@ -3,6 +3,7 @@
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 interface DataPoint {
+  id: number;
   date: string;
   revenue: number;
   users: number;

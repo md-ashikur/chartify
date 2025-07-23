@@ -4,6 +4,7 @@ import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip
 import { format } from 'date-fns';
 
 interface DataPoint {
+  id: number;
   date: string;
   revenue: number;
   users: number;

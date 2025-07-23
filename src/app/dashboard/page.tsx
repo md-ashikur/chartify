@@ -1,38 +1,51 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { subDays, format, isWithinInterval } from 'date-fns';
-import DateRangePicker from '@/components/DateRangePicker';
+import { format } from 'date-fns';
+import ImprovedDateRangePicker from '@/components/ImprovedDateRangePicker';
+import CategoryFilter from '@/components/CategoryFilter';
+import FilterStatus from '@/components/FilterStatus';
 import MetricsCards from '@/components/MetricsCards';
 import LineChart from '@/components/charts/LineChart';
 import BarChart from '@/components/charts/BarChart';
 import PieChart from '@/components/charts/PieChart';
 import AreaChart from '@/components/charts/AreaChart';
 import RadarChart from '@/components/charts/RadarChart';
-import { generateMockData } from '@/utils/mockData';
+import { useDashboardStore } from '@/store/dashboardStore';
+import { useAnalyticsData } from '@/hooks/useAnalyticsData';
 
 export default function Dashboard() {
-  const [dateRange, setDateRange] = useState({
-    startDate: subDays(new Date(), 30),
-    endDate: new Date()
-  });
-
-  // Generate mock data
-  const allData = useMemo(() => generateMockData(), []);
-
-  // Filter data based on date range
-  const filteredData = useMemo(() => {
-    return allData.filter(item => 
-      isWithinInterval(new Date(item.date), {
-        start: dateRange.startDate,
-        end: dateRange.endDate
-      })
-    );
-  }, [allData, dateRange]);
+  const { dateRange, setDateRange, selectedCategories, setSelectedCategories } = useDashboardStore();
+  const { allData, filteredData, metrics, allCategories, isLoading, error } = useAnalyticsData();
 
   const handleDateRangeChange = (startDate: Date, endDate: Date) => {
-    setDateRange({ startDate, endDate });
+    setDateRange(startDate, endDate);
   };
+
+  const handleCategoryChange = (categories: string[]) => {
+    setSelectedCategories(categories);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-white text-xl">Loading dashboard...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-400 text-xl mb-4">Error loading data</div>
+          <div className="text-slate-300">Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 sm:p-6 lg:p-8">
@@ -45,10 +58,20 @@ export default function Dashboard() {
             </h1>
             <p className="text-slate-300">
               {format(dateRange.startDate, 'MMM dd, yyyy')} - {format(dateRange.endDate, 'MMM dd, yyyy')}
+              {selectedCategories.length > 0 && (
+                <span className="ml-2 text-blue-400">
+                  • {selectedCategories.length === allCategories.length ? 'All Categories' : `${selectedCategories.length} Categories`}
+                </span>
+              )}
             </p>
           </div>
-          <div className="mt-4 sm:mt-0">
-            <DateRangePicker
+          <div className="mt-4 sm:mt-0 flex gap-3">
+            <CategoryFilter
+              categories={allCategories}
+              selectedCategories={selectedCategories}
+              onChange={handleCategoryChange}
+            />
+            <ImprovedDateRangePicker
               startDate={dateRange.startDate}
               endDate={dateRange.endDate}
               onChange={handleDateRangeChange}
@@ -56,8 +79,17 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Filter Status */}
+        <FilterStatus
+          dateRange={dateRange}
+          selectedCategories={selectedCategories}
+          allCategories={allCategories}
+          totalItems={allData.length}
+          filteredItems={filteredData.length}
+        />
+
         {/* Metrics Cards */}
-        <MetricsCards data={filteredData} />
+        <MetricsCards metrics={metrics} />
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

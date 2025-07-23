@@ -4,6 +4,7 @@ import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tool
 import { format } from 'date-fns';
 
 interface DataPoint {
+  id: number;
   date: string;
   revenue: number;
   users: number;

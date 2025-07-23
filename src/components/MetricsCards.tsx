@@ -1,62 +1,49 @@
 'use client';
 
-import { useMemo } from 'react';
-
-interface DataPoint {
-  date: string;
-  revenue: number;
-  users: number;
-  orders: number;
-  category: string;
+interface Metrics {
+  totalRevenue: number;
+  totalUsers: number;
+  totalOrders: number;
+  avgOrderValue: number;
+  revenueGrowth: number;
+  userGrowth: number;
+  orderGrowth: number;
+  aovGrowth: number;
 }
 
 interface MetricsCardsProps {
-  data: DataPoint[];
+  metrics: Metrics;
 }
 
-export default function MetricsCards({ data }: MetricsCardsProps) {
-  const metrics = useMemo(() => {
-    const totalRevenue = data.reduce((sum, item) => sum + item.revenue, 0);
-    const totalUsers = data.reduce((sum, item) => sum + item.users, 0);
-    const totalOrders = data.reduce((sum, item) => sum + item.orders, 0);
-    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-
-    return {
-      totalRevenue,
-      totalUsers,
-      totalOrders,
-      avgOrderValue
-    };
-  }, [data]);
-
+export default function MetricsCards({ metrics }: MetricsCardsProps) {
   const cards = [
     {
       title: 'Total Revenue',
       value: `$${metrics.totalRevenue.toLocaleString()}`,
       icon: '💰',
       color: 'from-green-400 to-green-600',
-      change: '+12.5%'
+      change: `+${metrics.revenueGrowth}%`
     },
     {
       title: 'Total Users',
       value: metrics.totalUsers.toLocaleString(),
       icon: '👥',
       color: 'from-blue-400 to-blue-600',
-      change: '+8.2%'
+      change: `+${metrics.userGrowth}%`
     },
     {
       title: 'Total Orders',
       value: metrics.totalOrders.toLocaleString(),
       icon: '📦',
       color: 'from-purple-400 to-purple-600',
-      change: '+15.3%'
+      change: `+${metrics.orderGrowth}%`
     },
     {
       title: 'Avg Order Value',
       value: `$${metrics.avgOrderValue.toFixed(2)}`,
       icon: '📊',
       color: 'from-orange-400 to-orange-600',
-      change: '+4.7%'
+      change: `+${metrics.aovGrowth}%`
     }
   ];
 

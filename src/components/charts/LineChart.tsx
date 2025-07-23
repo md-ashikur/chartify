@@ -4,6 +4,7 @@ import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { format } from 'date-fns';
 
 interface DataPoint {
+  id: number;
   date: string;
   revenue: number;
   users: number;
