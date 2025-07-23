@@ -13,7 +13,7 @@ export interface DataPoint {
 const mockAnalyticsData: DataPoint[] = [
   {
     id: 1,
-    date: "2025-06-23",
+    date: "2025-04-23",
     revenue: 2450,
     users: 156,
     orders: 34,
